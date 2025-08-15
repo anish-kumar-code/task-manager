@@ -11,6 +11,7 @@ import taskRouter from './routes/task.routes.js'
 // --- Error handling middleware ---
 import { errorHandler } from "./middlewares/error.middleware.js";
 import morgan from "morgan";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 app.use(morgan("dev"));
@@ -33,8 +34,18 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 
+// Create the rate limiter
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 10, 
+    message: 'Too many requests from this IP, please try again after 15 minutes',
+    standardHeaders: true, 
+    legacyHeaders: false, 
+});
+
+
 // Routes
-app.use("/api/v1/users", userRouter);
+app.use("/api/v1/users", authLimiter, userRouter);
 app.use("/api/v1/tasks", taskRouter);
 
 
